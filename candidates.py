@@ -31,8 +31,8 @@ def select(limit: int = 20) -> list:
 
     rows = conn.execute(
         """SELECT * FROM markets
-           WHERE status = 'active' OR status = 'open'
-           AND yes_bid IS NOT NULL AND yes_ask IS NOT NULL""",
+           WHERE status IN ('active', 'open')
+             AND yes_bid IS NOT NULL AND yes_ask IS NOT NULL""",
     ).fetchall()
 
     out = []

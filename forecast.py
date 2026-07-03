@@ -33,8 +33,15 @@ remains before the close date.
 - Be honest about uncertainty. Avoid probabilities below 0.02 or above 0.98 unless the \
 outcome is essentially determined.
 
+- Before deciding, restate the exact resolution threshold and write out the key \
+quantitative comparison (e.g. "threshold is >18; current pace implies ~15"). If the \
+numbers land near the threshold, your probability should be near 0.5, not extreme. \
+Double-check the arithmetic in that comparison before finalizing.
+
 Respond with ONLY a JSON object, no other text:
-{{"probability_yes": <float 0-1>, "confidence": "<low|medium|high>", "rationale": "<2-4 sentences citing your key evidence>"}}"""
+{{"key_comparison": "<threshold vs your best estimate of the quantity, with numbers>", \
+"probability_yes": <float 0-1>, "confidence": "<low|medium|high>", \
+"rationale": "<2-4 sentences citing your key evidence>"}}"""
 
 
 def run_claude(prompt: str) -> dict:
@@ -79,7 +86,10 @@ def forecast_market(conn, row) -> int:
         (
             row["ticker"], datetime.now(timezone.utc).isoformat(),
             out["probability_yes"], mid, row["yes_bid"], row["yes_ask"],
-            out.get("confidence"), out.get("rationale"), MODEL,
+            out.get("confidence"),
+            (f"[{out['key_comparison']}] " if out.get("key_comparison") else "")
+            + (out.get("rationale") or ""),
+            MODEL,
         ),
     )
     conn.commit()
