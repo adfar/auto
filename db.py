@@ -59,11 +59,51 @@ CREATE TABLE IF NOT EXISTS settlements (
     result TEXT NOT NULL,           -- yes / no
     settled_ts TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS forecast_runs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    question_id TEXT NOT NULL,      -- ticker
+    ts TEXT NOT NULL,
+    harness_version TEXT NOT NULL,
+    p_raw REAL,                     -- supervisor output, pre-calibration
+    p_calibrated REAL,              -- what trade.py consumes (via forecasts.p_model)
+    calibration TEXT,               -- json, e.g. {"method":"extremize","alpha":1.3}
+    confidence TEXT,
+    rationale TEXT,
+    crux TEXT,
+    question_type TEXT,             -- from the analyst stage
+    n_researchers INTEGER,
+    researcher_spread REAL,         -- max - min of researcher probabilities
+    supervisor_fallback INTEGER DEFAULT 0,
+    status TEXT NOT NULL,           -- running / ok / failed
+    duration_s REAL,
+    as_of TEXT                      -- null for live; set for pastcasts
+);
+
+CREATE TABLE IF NOT EXISTS agent_traces (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    run_id INTEGER NOT NULL REFERENCES forecast_runs(id),
+    stage TEXT NOT NULL,            -- analyst / researcher / supervisor
+    agent_index INTEGER,            -- 0..K-1 for researchers
+    output_json TEXT,               -- full parsed stage output
+    sources TEXT,                   -- json array of URLs
+    error TEXT,
+    duration_s REAL
+);
 """
+
+
+def _migrate(conn: sqlite3.Connection) -> None:
+    cols = {r["name"] for r in conn.execute("PRAGMA table_info(forecasts)")}
+    if "run_id" not in cols:
+        conn.execute(
+            "ALTER TABLE forecasts ADD COLUMN run_id INTEGER REFERENCES forecast_runs(id)")
+        conn.commit()
 
 
 def connect() -> sqlite3.Connection:
     conn = sqlite3.connect(DB_PATH, timeout=30)
     conn.row_factory = sqlite3.Row
     conn.executescript(SCHEMA)
+    _migrate(conn)
     return conn

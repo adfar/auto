@@ -8,10 +8,18 @@ Kalshi market prices — before risking real money.
 ```
 scan.py        # snapshot all open Kalshi markets (public API, no key) -> SQLite
 candidates.py  # hard filters: liquidity, spread, horizon, category -> top-N
-forecast.py    # headless `claude -p` + web search -> independent P(YES)
+forecast.py    # adapter into forecaster/ (multi-agent harness) -> independent P(YES)
 trade.py       # paper trade only when EV > fees + spread + 5c margin; 1/4-Kelly
 settle.py      # check real resolutions; realize P&L; Brier: model vs market
 ```
+
+The forecaster is a multi-agent harness (`forecaster/`, design in
+`docs/forecaster-design.md`): an analyst decomposes the question into
+subquestions, 3 independent researchers investigate in parallel with web
+search, a supervisor reconciles their reports (with targeted follow-up on
+the crux of any disagreement), and a deterministic calibration step
+extremizes the result. Every stage is persisted to `forecast_runs` /
+`agent_traces` so misses can be diagnosed per-stage after settlement.
 
 Run daily-ish:
 

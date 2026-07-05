@@ -4,7 +4,11 @@ set -euo pipefail
 cd "$(dirname "$0")"
 N="${1:-10}"
 
-python3 scan.py
-python3 forecast.py "$N"
-python3 trade.py
-python3 settle.py
+# Prefer the project venv (python3 -m venv .venv && .venv/bin/pip install -r requirements.txt)
+PY="python3"
+[[ -x .venv/bin/python ]] && PY=".venv/bin/python"
+
+"$PY" scan.py
+"$PY" forecast.py "$N"
+"$PY" trade.py
+"$PY" settle.py
