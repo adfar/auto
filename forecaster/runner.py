@@ -46,7 +46,9 @@ def _invoke(prompt: str, tools: tuple[str, ...], timeout: float) -> str:
     except subprocess.TimeoutExpired as e:
         raise AgentError(f"timed out after {timeout:.0f}s") from e
     if proc.returncode != 0:
-        raise AgentError(f"claude exited {proc.returncode}: {proc.stderr[:500]}")
+        # Auth/usage errors land on stdout, not stderr — capture whichever has content.
+        detail = proc.stderr.strip() or proc.stdout.strip()
+        raise AgentError(f"claude exited {proc.returncode}: {detail[:500]}")
     try:
         wrapper = json.loads(proc.stdout)
     except json.JSONDecodeError as e:
