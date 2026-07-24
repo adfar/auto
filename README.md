@@ -21,11 +21,16 @@ the crux of any disagreement), and a deterministic calibration step
 extremizes the result. Every stage is persisted to `forecast_runs` /
 `agent_traces` so misses can be diagnosed per-stage after settlement.
 
-Run daily-ish:
+Runs nightly at 06:30 via launchd (`scripts/nightly.sh` — logs to
+`logs/nightly.log`, pushes DB state to GitHub). Manual run:
 
 ```sh
-python3 scan.py && python3 forecast.py 10 && python3 trade.py && python3 settle.py
+./run.sh 10
 ```
+
+Offline eval: `pastcast.py [N]` re-forecasts already-resolved questions
+(with an as-of date) and prints Brier per harness version vs the frozen
+market price — for comparing harness versions without waiting weeks.
 
 ## The gate
 

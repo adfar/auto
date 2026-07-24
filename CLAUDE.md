@@ -33,6 +33,17 @@ system pythons lack deps). Setup if missing:
 - One live harness forecast: `.venv/bin/python scan.py && .venv/bin/python forecast.py 1`
   (scan takes several minutes; run in background)
 - Scoreboard / Brier: `.venv/bin/python settle.py`
+- Offline eval: `.venv/bin/python pastcast.py [N]` re-forecasts resolved
+  questions with `as_of` set; `--score` prints per-version Briers. Counts
+  toward the live-call budget. Leakage caveat: relative comparisons only.
+
+## Nightly automation
+
+launchd job `com.kalshi-edge.nightly` (~/Library/LaunchAgents/) runs
+`scripts/nightly.sh` at 06:30 local: full cycle -> logs/nightly.log ->
+best-effort commit+push of kalshi_edge.db. Check health with
+`tail logs/nightly.log` and `launchctl print gui/$(id -u)/com.kalshi-edge.nightly`.
+If the nightly pushed DB state, `git pull --rebase` before starting work.
 
 ## Inspecting a forecast run
 
